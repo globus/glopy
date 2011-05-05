@@ -1,0 +1,26 @@
+Library wrapping Globus Toolkit. This is intentionally written by hand and not
+with SWIG, to make it easy to develop and audit the specific functionality
+required by GO.
+
+Currently only support the loading and verifying certificate chains and proxy
+files, by wrapping globus_gsi_credential. For example:
+
+    import gt
+
+    c = gt.Credential()
+    c.load_cert_file("/tmp/x509up_u1000")
+    print "subject =", c.get_subject()
+    print "goodtill =", c.get_goodtill()
+    try:
+        c.verify_chain()
+    except gt.error as e:
+        print "Verify Failed:", str(e)
+    else:
+        print "Verify OK"
+
+A single credential object can be re-used to load and verify many certificates
+and proxies, from files and from strings, within a single thread. However it is
+not thread safe, so each thread should have it's own object.
+
+Note: There are currently lots of warnings from gt header files. It would
+be nice to fix these, I may be including a header twice.
