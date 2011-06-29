@@ -2,13 +2,14 @@ Library wrapping Globus Toolkit. This is intentionally written by hand and not
 with SWIG, to make it easy to develop and audit the specific functionality
 required by GO.
 
-Currently only supports the loading and verifying certificate chains and proxy
-files, by wrapping globus_gsi_credential. For example:
+Currently only supports loading and verifying certificate chains and
+credentials, by wrapping globus_gsi_credential. For example:
 
     import glopy
 
     c = glopy.Credential()
     c.load_cert_file("/tmp/x509up_u1000")
+    print "identity =", c.get_identity()
     print "subject =", c.get_subject()
     print "goodtill =", c.get_goodtill()
     try:
@@ -17,6 +18,9 @@ files, by wrapping globus_gsi_credential. For example:
         print "Verify Failed:", str(e)
     else:
         print "Verify OK"
+
+It works even when no private key is present (a certificate chain), and
+it understands proxy certificates.
 
 A single credential object can be re-used to load and verify many certificates
 and proxies, from files and from strings, within a single thread. However it is
