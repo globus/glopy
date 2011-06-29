@@ -62,12 +62,12 @@ static PyMethodDef credential_methods[] = {
      " in PEM format."},
     {"verify_chain",  (PyCFunction)credential_verify_chain, METH_VARARGS,
      "Verify the certificate chain. Also checks the signing policies."
-     " Returns None on success, raises gt.error on failure."},
+     " Returns None on success, raises glopy.error on failure."},
     {"verify_keys",  (PyCFunction)credential_verify_keys, METH_VARARGS,
      "Verify that the public and private keys match."
      " Only works if for proxy credentials containing the private key"
      " and issuer certificate."
-     " Returns None on success, raises gt.error on failure."},
+     " Returns None on success, raises glopy.error on failure."},
     {"get_identity",  (PyCFunction)credential_get_identity, METH_VARARGS,
      "Get the identity subject of the certificate, as a string in openssl "
      "format. This is the subject with proxy CNs removed, "
@@ -88,8 +88,8 @@ static PyMethodDef credential_methods[] = {
 static PyTypeObject credential_Type = {
     PyObject_HEAD_INIT(NULL)
     0,                         /*ob_size*/
-    "gt.Credential",              /*tp_name*/
-    sizeof(credential_Object),    /*tp_basicsize*/
+    "glopy.Credential",        /*tp_name*/
+    sizeof(credential_Object), /*tp_basicsize*/
     0,                         /*tp_itemsize*/
     0,                         /*tp_dealloc*/
     0,                         /*tp_print*/
