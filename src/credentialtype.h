@@ -37,6 +37,7 @@ PyObject *credential_load_proxy_file(credential_Object *self, PyObject *args);
 PyObject *credential_verify_chain(credential_Object *self, PyObject *args);
 PyObject *credential_verify_keys(credential_Object *self, PyObject *args);
 
+PyObject *credential_get_identity(credential_Object *self, PyObject *args);
 PyObject *credential_get_subject(credential_Object *self, PyObject *args);
 PyObject *credential_get_issuer(credential_Object *self, PyObject *args);
 
@@ -67,6 +68,10 @@ static PyMethodDef credential_methods[] = {
      " Only works if for proxy credentials containing the private key"
      " and issuer certificate."
      " Returns None on success, raises gt.error on failure."},
+    {"get_identity",  (PyCFunction)credential_get_identity, METH_VARARGS,
+     "Get the identity subject of the certificate, as a string in openssl "
+     "format. This is the subject with proxy CNs removed, "
+     "and should usually be used instead of the subject." },
     {"get_subject",  (PyCFunction)credential_get_subject, METH_VARARGS,
      "Get the subject of the certificate, as a string in openssl format."},
     {"get_issuer",  (PyCFunction)credential_get_issuer, METH_VARARGS,

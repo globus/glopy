@@ -193,6 +193,36 @@ credential_load_proxy_file(credential_Object *self, PyObject *args) {
 }
 
 PyObject *
+credential_get_identity(credential_Object *self, PyObject *args) {
+    char *subject_name = NULL;
+    globus_result_t result;
+
+	if (!PyArg_ParseTuple(args, "")) {
+		return NULL;
+	}
+
+    result = globus_gsi_cred_get_identity_name(self->handle, &subject_name);
+    if (result != GLOBUS_SUCCESS) {
+        // TODO: this assumes that subject_name was not allocated on
+        // failure - is this always correct?
+        gt_set_error(result);
+        return NULL;
+    }
+
+    if (subject_name == NULL) {
+        PyErr_SetString(gt_error, "Got NULL string from gt");
+        return NULL;
+    }
+
+    PyObject *out = PyString_FromString(subject_name);
+
+    // See comment in globus_gsi_credential.c
+    OPENSSL_free(subject_name);
+
+    return out;
+}
+
+PyObject *
 credential_get_subject(credential_Object *self, PyObject *args) {
     char *subject_name = NULL;
     globus_result_t result;
