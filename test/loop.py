@@ -6,7 +6,7 @@ using the same handle over and over, and check for memory leaks.
 import sys
 import os
 from threading import Thread
-import gt
+import glopy
 
 TEST_DIR = os.path.abspath(__file__)
 TMP_DIR = os.path.join(TEST_DIR, "tmp")
@@ -16,11 +16,11 @@ class LoadCreds(Thread):
         Thread.__init__(self)
         self.trials = trials
         self.credentials = credentials
-        self.c = gt.Credential()
+        self.c = glopy.Credential()
 
     def run(self):
         c = self.c
-        #c = gt.Credential()
+        #c = glopy.Credential()
         for i in xrange(self.trials):
             for cred in self.credentials:
                 if cred.find("proxy") != -1:
@@ -29,7 +29,7 @@ class LoadCreds(Thread):
                     # not a valid cert, make sure we get an error
                     try:
                         c.load_cert_file(cred)
-                    except gt.error as e:
+                    except glopy.error as e:
                         pass
                     else:
                         print "ERROR: loaded non cert w/o exception"
@@ -38,7 +38,7 @@ class LoadCreds(Thread):
                     c.load_cert_file(cred)
                 try:
                     c.verify_chain()
-                except gt.error as e:
+                except glopy.error as e:
                     print "ERROR: ", str(e)
                     return
 

@@ -27,7 +27,7 @@
 #include "openssl/bn.h"
 
 #include "credentialtype.h"
-#include "gtmodule.h"
+#include "glopymodule.h"
 
 void
 credential_dealloc(credential_Object *self) {
@@ -56,13 +56,13 @@ credential_new(PyTypeObject *type, PyObject *args, PyObject *kw) {
             free(self->cert_dir);
             self->cert_dir = NULL;
         }
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
     result = globus_gsi_cred_handle_init(&self->handle, NULL);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -75,7 +75,7 @@ load_cert(credential_Object *self, const char *pem_string) {
     globus_result_t result;
 
     if((cert_bio = BIO_new_mem_buf((void *)pem_string, -1)) == NULL) {
-        PyErr_SetString(gt_error, "Failed to create BIO for string data");
+        PyErr_SetString(glopy_error, "Failed to create BIO for string data");
         return NULL;
     }
 
@@ -86,7 +86,7 @@ load_cert(credential_Object *self, const char *pem_string) {
     }
 
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -138,7 +138,7 @@ credential_load_cert_file(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_read_cert(self->handle, file_name);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -156,7 +156,7 @@ credential_load_proxy(credential_Object *self, PyObject *args) {
 	}
 
     if((proxy_bio = BIO_new_mem_buf((void *)pem_string, -1)) == NULL) {
-        PyErr_SetString(gt_error, "Failed to create BIO for string data");
+        PyErr_SetString(glopy_error, "Failed to create BIO for string data");
         return NULL;
     }
 
@@ -167,7 +167,7 @@ credential_load_proxy(credential_Object *self, PyObject *args) {
     }
 
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -185,7 +185,7 @@ credential_load_proxy_file(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_read_proxy(self->handle, file_name);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -205,12 +205,12 @@ credential_get_identity(credential_Object *self, PyObject *args) {
     if (result != GLOBUS_SUCCESS) {
         // TODO: this assumes that subject_name was not allocated on
         // failure - is this always correct?
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
     if (subject_name == NULL) {
-        PyErr_SetString(gt_error, "Got NULL string from gt");
+        PyErr_SetString(glopy_error, "Got NULL string from gt");
         return NULL;
     }
 
@@ -235,12 +235,12 @@ credential_get_subject(credential_Object *self, PyObject *args) {
     if (result != GLOBUS_SUCCESS) {
         // TODO: this assumes that subject_name was not allocated on
         // failure - is this always correct?
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
     if (subject_name == NULL) {
-        PyErr_SetString(gt_error, "Got NULL string from gt");
+        PyErr_SetString(glopy_error, "Got NULL string from gt");
         return NULL;
     }
 
@@ -263,12 +263,12 @@ credential_get_issuer(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_get_issuer_name(self->handle, &issuer_name);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
     if (issuer_name == NULL) {
-        PyErr_SetString(gt_error, "Got NULL string from gt");
+        PyErr_SetString(glopy_error, "Got NULL string from gt");
         return NULL;
     }
 
@@ -291,7 +291,7 @@ credential_get_lifetime(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_get_lifetime(self->handle, &lifetime);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -309,11 +309,11 @@ credential_get_goodtill(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_get_goodtill(self->handle, &goodtill);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
-    return gt_PyDateTime_FromLong(goodtill);
+    return glopy_PyDateTime_FromLong(goodtill);
 }
 
 PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
@@ -329,7 +329,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
     result = globus_gsi_callback_data_init(&callback_data);
     if (result != GLOBUS_SUCCESS) {
         error = 1;
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         goto exit;
     }
 
@@ -337,7 +337,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
                                               self->cert_dir);
     if (result != GLOBUS_SUCCESS) {
         error = 1;
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         goto exit;
     }
 
@@ -345,7 +345,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
                                                 callback_data, GLOBUS_FALSE);
     if (result != GLOBUS_SUCCESS) {
         error = 1;
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         goto exit;
     }
 
@@ -353,7 +353,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
 
     if (result != GLOBUS_SUCCESS) {
         error = 1;
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         goto exit;
     }
 
@@ -378,7 +378,7 @@ credential_verify_keys(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_verify(self->handle);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 
@@ -395,7 +395,7 @@ PyObject *credential_get_key_bits(credential_Object *self, PyObject *args) {
 
     result = globus_gsi_cred_get_key_bits(self->handle, &bits);
     if (result != GLOBUS_SUCCESS) {
-        gt_set_error(result);
+        glopy_set_gt_error(result);
         return NULL;
     }
 

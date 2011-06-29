@@ -28,16 +28,16 @@
 #include "exceptions.h"
 #include "credentialtype.h"
 
-PyObject *gt_error;
+PyObject *glopy_error;
 
 PyObject * deactivate_modules();
 
-static PyMethodDef gt_module_methods[] = {
+static PyMethodDef glopy_module_methods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 PyMODINIT_FUNC
-initgt(void) {
+initglopy(void) {
     PyObject *m;
 
     if (PyType_Ready(&credential_Type) < 0)
@@ -58,7 +58,7 @@ initgt(void) {
         return;
     }
 
-    m = Py_InitModule3("gt", gt_module_methods,
+    m = Py_InitModule3("glopy", glopy_module_methods,
            "Module wrapping some Globus Toolkit features.");
 
     if (m == NULL)
@@ -72,9 +72,9 @@ initgt(void) {
         return;
     }
 
-    gt_error = PyErr_NewException("gt.error", NULL, NULL);
-    Py_INCREF(gt_error);
-    PyModule_AddObject(m, "error", gt_error);
+    glopy_error = PyErr_NewException("glopy.error", NULL, NULL);
+    Py_INCREF(glopy_error);
+    PyModule_AddObject(m, "error", glopy_error);
 
     Py_INCREF(&credential_Type);
     PyModule_AddObject(m, "Credential", (PyObject *)&credential_Type);
@@ -82,12 +82,12 @@ initgt(void) {
 
 
 PyObject *deactivate_modules(credential_Object *self, PyObject *args) {
-	if (!PyArg_UnpackTuple(args, "gt.deactivate_modules", 0, 0)) {
+	if (!PyArg_UnpackTuple(args, "glopy.deactivate_modules", 0, 0)) {
 		return NULL;
 	}
 
     if (globus_module_deactivate_all() != GLOBUS_SUCCESS) {
-        PyErr_SetString(gt_error, "No modules have been initialized");
+        PyErr_SetString(glopy_error, "No modules have been initialized");
         return NULL;
     }
 
@@ -101,7 +101,7 @@ PyObject *deactivate_modules(credential_Object *self, PyObject *args) {
  * is in a separate source file and has no natural place for one time
  * initialization. We call out to this module level function instead.
  */
-PyObject *gt_PyDateTime_FromLong(long n) {
+PyObject *glopy_PyDateTime_FromLong(long n) {
     PyObject *temp, *out;
     if ((temp = Py_BuildValue("(l)", n)) == NULL)
         return NULL;
@@ -110,8 +110,8 @@ PyObject *gt_PyDateTime_FromLong(long n) {
     return out;
 }
 
-void gt_set_error(globus_result_t result) {
+void glopy_set_gt_error(globus_result_t result) {
     char *msg = globus_error_print_friendly(globus_error_peek(result));
-    PyErr_SetString(gt_error, msg);
+    PyErr_SetString(glopy_error, msg);
     free(msg);
 }
