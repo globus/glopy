@@ -35,7 +35,7 @@ PyObject *credential_load_proxy(credential_Object *self, PyObject *args);
 PyObject *credential_load_proxy_file(credential_Object *self, PyObject *args);
 
 PyObject *credential_verify_chain(credential_Object *self, PyObject *args);
-PyObject *credential_verify_keys(credential_Object *self, PyObject *args);
+PyObject *credential_verify_cert(credential_Object *self, PyObject *args);
 
 PyObject *credential_get_identity(credential_Object *self, PyObject *args);
 PyObject *credential_get_subject(credential_Object *self, PyObject *args);
@@ -63,11 +63,10 @@ static PyMethodDef credential_methods[] = {
     {"verify_chain",  (PyCFunction)credential_verify_chain, METH_VARARGS,
      "Verify the certificate chain. Also checks the signing policies."
      " Returns None on success, raises glopy.error on failure."},
-    {"verify_keys",  (PyCFunction)credential_verify_keys, METH_VARARGS,
-     "Verify that the public and private keys match."
-     " Only works if for proxy credentials containing the private key"
-     " and issuer certificate."
-     " Returns None on success, raises glopy.error on failure."},
+    {"verify_cert",  (PyCFunction)credential_verify_cert, METH_VARARGS,
+     "Verify that the proxy certificate is signed by the public key of the"
+     " first certificate in the chain (it's issuer). Does not check signing"
+     " policies. Returns None on success, raises glopy.error on failure."},
     {"get_identity",  (PyCFunction)credential_get_identity, METH_VARARGS,
      "Get the identity subject of the certificate, as a string in openssl "
      "format. This is the subject with proxy CNs removed, "

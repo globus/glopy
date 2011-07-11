@@ -25,3 +25,11 @@ except glopy.error as e:
     print "FAILED -", e
 else:
     print "OK"
+
+print "Verify Cert:",
+try:
+    c.verify_cert()
+except glopy.error as e:
+    print "FAILED -", e
+else:
+    print "OK"

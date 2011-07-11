@@ -369,7 +369,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
 }
 
 PyObject *
-credential_verify_keys(credential_Object *self, PyObject *args) {
+credential_verify_cert(credential_Object *self, PyObject *args) {
     globus_result_t result;
 
 	if (!PyArg_ParseTuple(args, "")) {
