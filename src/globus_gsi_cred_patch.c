@@ -212,6 +212,16 @@ globus_gsi_cred_get_not_before(
         goto exit;
     }
 
+    if (handle->cert == NULL)
+    {
+        GLOBUS_GSI_CRED_ERROR_RESULT(
+            result,
+            GLOBUS_GSI_CRED_ERROR_WITH_CRED_PRIVATE_KEY,
+            (_GCRSL("The handle's cert is NULL")));
+
+        goto exit;
+    }
+
     current_cert = handle->cert;
 
     *not_before = 0;

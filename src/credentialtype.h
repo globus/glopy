@@ -22,6 +22,7 @@ typedef struct {
     PyObject_HEAD
     globus_gsi_cred_handle_t handle;
     char *cert_dir;
+    char loaded;
     char has_private_key;
 } credential_Object;
 

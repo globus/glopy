@@ -56,6 +56,14 @@ class LoadCreds(Thread):
                     except glopy.error as e:
                         c.load_cert_file(cred)
                     total += 1
+
+                    c.get_not_before()
+                    c.get_not_after()
+                    c.get_subject()
+                    c.get_identity()
+                    c.get_lifetime()
+                    c.get_key_size()
+
                     try:
                         c.validate()
                     except glopy.error as e:

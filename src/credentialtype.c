@@ -52,6 +52,7 @@ credential_new(PyTypeObject *type, PyObject *args, PyObject *kw) {
     self->handle = NULL;
     self->cert_dir = NULL;
     self->has_private_key = 0;
+    self->loaded = 0;
 
     result = GLOBUS_GSI_SYSCONFIG_GET_CERT_DIR(&self->cert_dir);
     if (result != GLOBUS_SUCCESS) {
@@ -94,6 +95,7 @@ load_cert(credential_Object *self, const char *pem_string) {
     }
 
     self->has_private_key = 0;
+    self->loaded = 1;
 
     Py_RETURN_NONE;
 }
@@ -148,6 +150,7 @@ credential_load_cert_file(credential_Object *self, PyObject *args) {
     }
 
     self->has_private_key = 0;
+    self->loaded = 1;
 
     Py_RETURN_NONE;
 }
@@ -179,6 +182,7 @@ credential_load_cert_and_key(credential_Object *self, PyObject *args) {
     }
 
     self->has_private_key = 1;
+    self->loaded = 1;
 
     Py_RETURN_NONE;
 }
@@ -199,6 +203,7 @@ credential_load_cert_and_key_file(credential_Object *self, PyObject *args) {
     }
 
     self->has_private_key = 1;
+    self->loaded = 1;
 
     Py_RETURN_NONE;
 }
@@ -211,6 +216,12 @@ credential_get_identity(credential_Object *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "")) {
 		return NULL;
 	}
+
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
 
     result = globus_gsi_cred_get_identity_name(self->handle, &subject_name);
     if (result != GLOBUS_SUCCESS) {
@@ -242,6 +253,12 @@ credential_get_subject(credential_Object *self, PyObject *args) {
 		return NULL;
 	}
 
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
+
     result = globus_gsi_cred_get_subject_name(self->handle, &subject_name);
     if (result != GLOBUS_SUCCESS) {
         // TODO: this assumes that subject_name was not allocated on
@@ -272,6 +289,12 @@ credential_get_issuer(credential_Object *self, PyObject *args) {
 		return NULL;
 	}
 
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
+
     result = globus_gsi_cred_get_issuer_name(self->handle, &issuer_name);
     if (result != GLOBUS_SUCCESS) {
         glopy_set_gt_error(result);
@@ -300,6 +323,12 @@ credential_get_lifetime(credential_Object *self, PyObject *args) {
 		return NULL;
 	}
 
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
+
     result = globus_gsi_cred_get_lifetime(self->handle, &lifetime);
     if (result != GLOBUS_SUCCESS) {
         glopy_set_gt_error(result);
@@ -317,6 +346,12 @@ credential_get_not_after(credential_Object *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "")) {
 		return NULL;
 	}
+
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
 
     result = globus_gsi_cred_get_goodtill(self->handle, &not_after);
     if (result != GLOBUS_SUCCESS) {
@@ -336,6 +371,12 @@ credential_get_not_before(credential_Object *self, PyObject *args) {
 		return NULL;
 	}
 
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
+
     result = globus_gsi_cred_get_not_before(self->handle, &not_before);
     if (result != GLOBUS_SUCCESS) {
         glopy_set_gt_error(result);
@@ -354,6 +395,13 @@ PyObject *credential_validate(credential_Object *self, PyObject *args) {
         error = 1;
         goto exit;
 	}
+
+    if (!self->loaded) {
+        error = 1;
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        goto exit;
+    }
 
     result = globus_gsi_callback_data_init(&callback_data);
     if (result != GLOBUS_SUCCESS) {
@@ -405,6 +453,12 @@ credential_check_cert_issuer(credential_Object *self, PyObject *args) {
 		return NULL;
 	}
 
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
+
     result = globus_gsi_cred_verify(self->handle);
     if (result != GLOBUS_SUCCESS) {
         glopy_set_gt_error(result);
@@ -421,6 +475,12 @@ credential_check_private_key(credential_Object *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "")) {
 		return NULL;
 	}
+
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
 
     result = globus_gsi_cred_verify_private_key(self->handle);
     if (result != GLOBUS_SUCCESS) {
@@ -447,6 +507,13 @@ credential_check_private_key2(credential_Object *self, PyObject *args) {
         error = 1;
 		goto exit;
 	}
+
+    if (!self->loaded) {
+        error = 1;
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        goto exit;
+    }
 
     if (!self->has_private_key) {
         error = 1;
@@ -500,6 +567,12 @@ PyObject *credential_get_key_size(credential_Object *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "")) {
 		return NULL;
 	}
+
+    if (!self->loaded) {
+        PyErr_SetString(glopy_error,
+            "No credential has been loaded in this instance.");
+        return NULL;
+    }
 
     result = globus_gsi_cred_get_key_bits(self->handle, &bits);
     if (result != GLOBUS_SUCCESS) {
