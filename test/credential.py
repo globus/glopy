@@ -26,6 +26,8 @@ print "Lifetime:  ", c.get_lifetime()
 print "Not Before:", c.get_not_before()
 print "Not After: ", c.get_not_after()
 print "Key Size:  ", c.get_key_size()
+print "Has Priv K:", c.has_private_key()
+print "Chain Len: ", c.get_chain_length()
 
 print "Validate:    ",
 try:

@@ -63,6 +63,8 @@ class LoadCreds(Thread):
                     c.get_identity()
                     c.get_lifetime()
                     c.get_key_size()
+                    c.get_chain_length()
+                    c.has_private_key()
 
                     try:
                         c.validate()

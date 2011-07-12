@@ -83,7 +83,8 @@ globus_gsi_cred_verify_private_key(
  */
 globus_result_t
 globus_gsi_cred_has_private_key(
-    globus_gsi_cred_handle_t            handle)
+    globus_gsi_cred_handle_t            handle,
+    int *                               has_private_key)
 {
     globus_result_t                     result = GLOBUS_SUCCESS;
     static char *                       _function_name_ =
@@ -100,15 +101,17 @@ globus_gsi_cred_has_private_key(
         goto exit;
     }
 
-    if (handle->key == NULL)
+    if(has_private_key == NULL)
     {
         GLOBUS_GSI_CRED_ERROR_RESULT(
             result,
-            GLOBUS_GSI_CRED_ERROR_WITH_CRED_PRIVATE_KEY,
-            (_GCRSL("The handle's key is NULL")));
-
+            GLOBUS_GSI_CRED_ERROR_WITH_CRED,
+            (_GCRSL("NULL has_private_key parameter passed to function: %s"),
+             _function_name_));
         goto exit;
     }
+
+    *has_private_key = (handle->key != NULL);
 
  exit:
 
@@ -132,7 +135,7 @@ globus_gsi_cred_has_private_key(
 globus_result_t
 globus_gsi_cred_get_chain_length(
     globus_gsi_cred_handle_t            handle,
-    unsigned int *                      length)
+    int *                               length)
 {
     globus_result_t                     result = GLOBUS_SUCCESS;
     static char *                       _function_name_ =
@@ -181,7 +184,7 @@ globus_gsi_cred_get_chain_length(
  *
  * @param handle
  *        The credential handle to retrieve the not before time from
- * @param not_before
+ * @param goodafter
  *        Contains the not before time if GLOBUS_SUCCESS is returned
  *
  * @return
@@ -189,16 +192,16 @@ globus_gsi_cred_get_chain_length(
  *        identifier is returned
  */
 globus_result_t
-globus_gsi_cred_get_not_before(
+globus_gsi_cred_get_goodafter(
     globus_gsi_cred_handle_t            handle,
-    time_t *                            not_before)
+    time_t *                            goodafter)
 {
     X509 *                              current_cert = NULL;
-    time_t                              tmp_not_before;
+    time_t                              tmp_goodafter;
     int                                 cert_count = 0;
     globus_result_t                     result = GLOBUS_SUCCESS;
     static char *                       _function_name_ =
-        "globus_gsi_cred_get_not_before";
+        "globus_gsi_cred_get_goodafter";
 
     GLOBUS_I_GSI_CRED_DEBUG_ENTER;
 
@@ -207,7 +210,17 @@ globus_gsi_cred_get_not_before(
         GLOBUS_GSI_CRED_ERROR_RESULT(
             result,
             GLOBUS_GSI_CRED_ERROR_WITH_CRED,
-            (_GCRSL("NULL cred handle parameter passed to function: %s"),
+            (_GCRSL("NULL handle parameter passed to function: %s"),
+             _function_name_));
+        goto exit;
+    }
+
+    if(goodafter == NULL)
+    {
+        GLOBUS_GSI_CRED_ERROR_RESULT(
+            result,
+            GLOBUS_GSI_CRED_ERROR_WITH_CRED,
+            (_GCRSL("NULL goodafter parameter passed to function: %s"),
              _function_name_));
         goto exit;
     }
@@ -224,8 +237,8 @@ globus_gsi_cred_get_not_before(
 
     current_cert = handle->cert;
 
-    *not_before = 0;
-    tmp_not_before = 0;
+    *goodafter = 0;
+    tmp_goodafter = 0;
 
     if(handle->cert_chain)
     {
@@ -236,7 +249,7 @@ globus_gsi_cred_get_not_before(
     {
         result = globus_gsi_cert_utils_make_time(
             X509_get_notBefore(current_cert),
-            &tmp_not_before);
+            &tmp_goodafter);
         if(result != GLOBUS_SUCCESS)
         {
             GLOBUS_GSI_CRED_ERROR_CHAIN_RESULT(
@@ -245,9 +258,9 @@ globus_gsi_cred_get_not_before(
             goto exit;
         }
 
-        if(*not_before == 0 || tmp_not_before > *not_before)
+        if(*goodafter == 0 || tmp_goodafter > *goodafter)
         {
-            *not_before = tmp_not_before;
+            *goodafter = tmp_goodafter;
         }
 
         if(handle->cert_chain && cert_count)

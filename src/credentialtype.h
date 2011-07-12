@@ -54,6 +54,8 @@ PyObject *credential_get_not_after(credential_Object *self, PyObject *args);
 PyObject *credential_get_not_before(credential_Object *self, PyObject *args);
 
 PyObject *credential_get_key_size(credential_Object *self, PyObject *args);
+PyObject *credential_get_chain_length(credential_Object *self, PyObject *args);
+PyObject *credential_has_private_key(credential_Object *self, PyObject *args);
 
 static PyMemberDef credential_members[] = {
     {NULL}  /* Sentinel */
@@ -106,6 +108,12 @@ static PyMethodDef credential_methods[] = {
      " and any certificates in the chain."},
     {"get_key_size", (PyCFunction)credential_get_key_size, METH_VARARGS,
      "Get the key size in bits."},
+    {"get_chain_length", (PyCFunction)credential_get_chain_length,
+     METH_VARARGS,
+     "Get the length of the certificate chain, not including the main"
+     " certificate."},
+    {"has_private_key", (PyCFunction)credential_has_private_key, METH_VARARGS,
+     "True if a credential has been loaded and includes a private key."},
     {NULL}  /* Sentinel */
 };
 
@@ -140,7 +148,10 @@ static PyTypeObject credential_Type = {
     " that issued the proxy. Some methods apply only if a chain and/or"
     " private key is present, and will raise an error if those fields"
     " are not present. The functionality is implemented using the credential"
-    " library from globus toolkit."
+    " library from globus toolkit. The constructor takes an optional string"
+    " parameter, which is equivalent to using load_cert. If not string is"
+    " passed, one of the load methods must be called before using any of"
+    " the methods are called, otherwise an exception is thrown."
     , /* tp_doc */
     0,		                   /* tp_traverse */
     0,		                   /* tp_clear */
