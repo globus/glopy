@@ -22,6 +22,7 @@ typedef struct {
     PyObject_HEAD
     globus_gsi_cred_handle_t handle;
     char *cert_dir;
+    char has_private_key;
 } credential_Object;
 
 PyObject *credential_new(PyTypeObject *type, PyObject *args, PyObject *kw);
@@ -31,56 +32,79 @@ int credential_init(credential_Object *self, PyObject *args, PyObject *kw);
 
 PyObject *credential_load_cert(credential_Object *self, PyObject *args);
 PyObject *credential_load_cert_file(credential_Object *self, PyObject *args);
-PyObject *credential_load_proxy(credential_Object *self, PyObject *args);
-PyObject *credential_load_proxy_file(credential_Object *self, PyObject *args);
+PyObject *credential_load_cert_and_key(credential_Object *self,
+                                       PyObject *args);
+PyObject *credential_load_cert_and_key_file(credential_Object *self,
+                                            PyObject *args);
 
-PyObject *credential_verify_chain(credential_Object *self, PyObject *args);
-PyObject *credential_verify_cert(credential_Object *self, PyObject *args);
+PyObject *credential_validate(credential_Object *self, PyObject *args);
+
+PyObject *credential_check_cert_issuer(credential_Object *self,
+                                       PyObject *args);
+PyObject *credential_check_private_key(credential_Object *self,
+                                       PyObject *args);
 
 PyObject *credential_get_identity(credential_Object *self, PyObject *args);
 PyObject *credential_get_subject(credential_Object *self, PyObject *args);
 PyObject *credential_get_issuer(credential_Object *self, PyObject *args);
 
 PyObject *credential_get_lifetime(credential_Object *self, PyObject *args);
-PyObject *credential_get_goodtill(credential_Object *self, PyObject *args);
+PyObject *credential_get_not_after(credential_Object *self, PyObject *args);
+PyObject *credential_get_not_before(credential_Object *self, PyObject *args);
 
-PyObject *credential_get_key_bits(credential_Object *self, PyObject *args);
+PyObject *credential_get_key_size(credential_Object *self, PyObject *args);
 
 static PyMemberDef credential_members[] = {
     {NULL}  /* Sentinel */
 };
 
 static PyMethodDef credential_methods[] = {
-    {"load_cert",  (PyCFunction)credential_load_cert, METH_VARARGS,
+    {"load_cert", (PyCFunction)credential_load_cert, METH_VARARGS,
      "Load a certificate (with optional chain) from a PEM string."},
-    {"load_cert_file",  (PyCFunction)credential_load_cert_file, METH_VARARGS,
+    {"load_cert_file", (PyCFunction)credential_load_cert_file, METH_VARARGS,
      "Load a certificate (with optional chain) from a file in PEM format."},
-    {"load_proxy",  (PyCFunction)credential_load_proxy, METH_VARARGS,
-     "Load a proxy credential (with optional chain) from a PEM string."},
-    {"load_proxy_file",  (PyCFunction)credential_load_proxy_file, METH_VARARGS,
-     "Load a proxy credential (with optional chain) from a file,"
+    {"load_cert_and_key", (PyCFunction)credential_load_cert_and_key,
+     METH_VARARGS,
+     "Load a certificate and private key (with optional chain) from a"
+     " PEM string."},
+    {"load_cert_and_key_file", (PyCFunction)credential_load_cert_and_key_file,
+     METH_VARARGS,
+     "Load a certificate and private key (with optional chain) from a file,"
      " in PEM format."},
-    {"verify_chain",  (PyCFunction)credential_verify_chain, METH_VARARGS,
-     "Verify the certificate chain. Also checks the signing policies."
-     " Returns None on success, raises glopy.error on failure."},
-    {"verify_cert",  (PyCFunction)credential_verify_cert, METH_VARARGS,
-     "Verify that the proxy certificate is signed by the public key of the"
+    {"validate", (PyCFunction)credential_validate, METH_VARARGS,
+     "Determine if the certificate is valid using the GT configured"
+     " CA certificate directory. Signing policies are checked"
+     " for each non-proxy link in the chain. Returns None on success, raises"
+     " glopy.error on failure."},
+    {"check_cert_issuer", (PyCFunction)credential_check_cert_issuer,
+     METH_VARARGS,
+     "Check that the main certificate is signed by the public key of the"
      " first certificate in the chain (it's issuer). Does not check signing"
      " policies. Returns None on success, raises glopy.error on failure."},
-    {"get_identity",  (PyCFunction)credential_get_identity, METH_VARARGS,
+    {"check_private_key", (PyCFunction)credential_check_private_key,
+     METH_VARARGS, "Check that the private key matches the public key in"
+     " the main certificate. Only works on credentials containing a private"
+     " key. Returns None on success, raises glopy.error on failure."},
+    {"get_identity", (PyCFunction)credential_get_identity, METH_VARARGS,
      "Get the identity subject of the certificate, as a string in openssl "
      "format. This is the subject with proxy CNs removed, "
      "and should usually be used instead of the subject." },
-    {"get_subject",  (PyCFunction)credential_get_subject, METH_VARARGS,
+    {"get_subject", (PyCFunction)credential_get_subject, METH_VARARGS,
      "Get the subject of the certificate, as a string in openssl format."},
-    {"get_issuer",  (PyCFunction)credential_get_issuer, METH_VARARGS,
+    {"get_issuer", (PyCFunction)credential_get_issuer, METH_VARARGS,
      "Get the issuer of the certificate, as a string in openssl format."},
-    {"get_lifetime",  (PyCFunction)credential_get_lifetime, METH_VARARGS,
+    {"get_lifetime", (PyCFunction)credential_get_lifetime, METH_VARARGS,
      "Get the remaining valid lifetime of the certificate in seconds."},
-    {"get_goodtill",  (PyCFunction)credential_get_goodtill, METH_VARARGS,
-     "Get the time the certificate expires, as a datetime object in UTC."},
-    {"get_key_bits",  (PyCFunction)credential_get_key_bits, METH_VARARGS,
-     "Get the number of bits in the key."},
+    {"get_not_after", (PyCFunction)credential_get_not_after, METH_VARARGS,
+     "Get the time the credential expires, as a datetime object in UTC."
+     " This will be the smallest expire time of the main certificate"
+     " and any certificates in the chain."},
+    {"get_not_before", (PyCFunction)credential_get_not_before, METH_VARARGS,
+     "Get the not before time of the credential, as a datetime object in UTC."
+     " This will be the largest not before time of the main certificate"
+     " and any certificates in the chain."},
+    {"get_key_size", (PyCFunction)credential_get_key_size, METH_VARARGS,
+     "Get the key size in bits."},
     {NULL}  /* Sentinel */
 };
 
@@ -107,7 +131,16 @@ static PyTypeObject credential_Type = {
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT |
       Py_TPFLAGS_BASETYPE,     /*tp_flags*/
-    "Wrapper around a gt cred_handle",    /* tp_doc */
+    "Class for loading and verifying X509 credentials."
+    " A credential must contain a certificate, and may optionally contain"
+    " a private key and/or additional certificates making up the trust chain."
+    " The typical example is a proxy credential, which will contain a"
+    " proxy certificate, a private key, and the end entity certificate"
+    " that issued the proxy. Some methods apply only if a chain and/or"
+    " private key is present, and will raise an error if those fields"
+    " are not present. The functionality is implemented using the credential"
+    " library from globus toolkit."
+    , /* tp_doc */
     0,		                   /* tp_traverse */
     0,		                   /* tp_clear */
     0,		                   /* tp_richcompare */

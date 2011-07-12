@@ -25,6 +25,9 @@
 #include "globus_gsi_credential.h"
 #include "globus_gss_assist.h"
 #include "openssl/bn.h"
+#include "openssl/x509.h"
+
+#include "globus_gsi_cred_patch.h"
 
 #include "credentialtype.h"
 #include "glopymodule.h"
@@ -48,8 +51,8 @@ credential_new(PyTypeObject *type, PyObject *args, PyObject *kw) {
 
     self->handle = NULL;
     self->cert_dir = NULL;
+    self->has_private_key = 0;
 
-    // TODO: get cert_dir once in module init.
     result = GLOBUS_GSI_SYSCONFIG_GET_CERT_DIR(&self->cert_dir);
     if (result != GLOBUS_SUCCESS) {
         if (self->cert_dir != NULL) {
@@ -89,6 +92,8 @@ load_cert(credential_Object *self, const char *pem_string) {
         glopy_set_gt_error(result);
         return NULL;
     }
+
+    self->has_private_key = 0;
 
     Py_RETURN_NONE;
 }
@@ -142,11 +147,13 @@ credential_load_cert_file(credential_Object *self, PyObject *args) {
         return NULL;
     }
 
+    self->has_private_key = 0;
+
     Py_RETURN_NONE;
 }
 
 PyObject *
-credential_load_proxy(credential_Object *self, PyObject *args) {
+credential_load_cert_and_key(credential_Object *self, PyObject *args) {
     const char *pem_string = NULL;
     BIO *proxy_bio = NULL;
     globus_result_t result;
@@ -171,11 +178,13 @@ credential_load_proxy(credential_Object *self, PyObject *args) {
         return NULL;
     }
 
+    self->has_private_key = 1;
+
     Py_RETURN_NONE;
 }
 
 PyObject *
-credential_load_proxy_file(credential_Object *self, PyObject *args) {
+credential_load_cert_and_key_file(credential_Object *self, PyObject *args) {
     const char *file_name;
     globus_result_t result;
 
@@ -188,6 +197,8 @@ credential_load_proxy_file(credential_Object *self, PyObject *args) {
         glopy_set_gt_error(result);
         return NULL;
     }
+
+    self->has_private_key = 1;
 
     Py_RETURN_NONE;
 }
@@ -299,24 +310,42 @@ credential_get_lifetime(credential_Object *self, PyObject *args) {
 }
 
 PyObject *
-credential_get_goodtill(credential_Object *self, PyObject *args) {
-    time_t goodtill;
+credential_get_not_after(credential_Object *self, PyObject *args) {
+    time_t not_after;
     globus_result_t result;
 
 	if (!PyArg_ParseTuple(args, "")) {
 		return NULL;
 	}
 
-    result = globus_gsi_cred_get_goodtill(self->handle, &goodtill);
+    result = globus_gsi_cred_get_goodtill(self->handle, &not_after);
     if (result != GLOBUS_SUCCESS) {
         glopy_set_gt_error(result);
         return NULL;
     }
 
-    return glopy_PyDateTime_FromLong(goodtill);
+    return glopy_PyDateTime_FromLong(not_after);
 }
 
-PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
+PyObject *
+credential_get_not_before(credential_Object *self, PyObject *args) {
+    time_t not_before;
+    globus_result_t result;
+
+	if (!PyArg_ParseTuple(args, "")) {
+		return NULL;
+	}
+
+    result = globus_gsi_cred_get_not_before(self->handle, &not_before);
+    if (result != GLOBUS_SUCCESS) {
+        glopy_set_gt_error(result);
+        return NULL;
+    }
+
+    return glopy_PyDateTime_FromLong(not_before);
+}
+
+PyObject *credential_validate(credential_Object *self, PyObject *args) {
     globus_result_t result;
     globus_gsi_callback_data_t callback_data = NULL;
     int error = 0;
@@ -369,7 +398,7 @@ PyObject *credential_verify_chain(credential_Object *self, PyObject *args) {
 }
 
 PyObject *
-credential_verify_cert(credential_Object *self, PyObject *args) {
+credential_check_cert_issuer(credential_Object *self, PyObject *args) {
     globus_result_t result;
 
 	if (!PyArg_ParseTuple(args, "")) {
@@ -385,7 +414,86 @@ credential_verify_cert(credential_Object *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-PyObject *credential_get_key_bits(credential_Object *self, PyObject *args) {
+PyObject *
+credential_check_private_key(credential_Object *self, PyObject *args) {
+    globus_result_t result;
+
+	if (!PyArg_ParseTuple(args, "")) {
+		return NULL;
+	}
+
+    result = globus_gsi_cred_verify_private_key(self->handle);
+    if (result != GLOBUS_SUCCESS) {
+        glopy_set_gt_error(result);
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+credential_check_private_key2(credential_Object *self, PyObject *args) {
+    // This implementation does not rely on breaking the encapsulation of
+    // the credential library (or patches to GT), but it's less efficient
+    // because it has to copy the cert and private key to get access.
+    globus_result_t result;
+    int error = 0;
+    char openssl_message[256];
+    unsigned long openssl_error = 0;
+    EVP_PKEY *private_key = NULL;
+    X509 *cert = NULL;
+
+	if (!PyArg_ParseTuple(args, "")) {
+        error = 1;
+		goto exit;
+	}
+
+    if (!self->has_private_key) {
+        error = 1;
+        PyErr_SetString(glopy_error,
+            "No private key in this credential instance.");
+        goto exit;
+    }
+
+    // TODO: patch a verify_private_key function into the GT cred library,
+    // to avoid this wasteful copying of the key and cert.
+
+    result = globus_gsi_cred_get_key(self->handle, &private_key);
+    if (result != GLOBUS_SUCCESS) {
+        error = 1;
+        glopy_set_gt_error(result);
+        goto exit;
+    }
+
+    result = globus_gsi_cred_get_cert(self->handle, &cert);
+    if (result != GLOBUS_SUCCESS) {
+        error = 1;
+        glopy_set_gt_error(result);
+        goto exit;
+    }
+
+    if (!X509_check_private_key(cert, private_key)) {
+        error = 1;
+        openssl_error = ERR_get_error();
+        ERR_error_string_n(openssl_error, openssl_message,
+                           sizeof(openssl_message));
+        PyErr_SetString(glopy_error, openssl_message);
+    }
+
+ exit:
+    if (private_key != NULL)
+        EVP_PKEY_free(private_key);
+    if (cert != NULL)
+        X509_free(cert);
+
+    if (error)
+        return NULL;
+
+    Py_RETURN_NONE;
+}
+
+
+PyObject *credential_get_key_size(credential_Object *self, PyObject *args) {
     globus_result_t result;
     int bits;
 

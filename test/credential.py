@@ -10,25 +10,41 @@ fname = sys.argv[1]
 with open(fname) as f:
     data = f.read()
 
-c = glopy.Credential(data)
+c = glopy.Credential()
 
-print "Identity: ", c.get_identity()
-print "Subject: ", c.get_subject()
-print "Issuer:  ", c.get_issuer()
-print "Lifetime:", c.get_lifetime()
-print "Goodtill:", c.get_goodtill()
-
-print "Verify Chain:",
+# First try to load assuming it contains a private key; if that fails
+# try again assuming no private key.
 try:
-    c.verify_chain()
+    c.load_cert_and_key(data)
+except glopy.error:
+    c.load_cert(data)
+
+print "Identity:  ", c.get_identity()
+print "Subject:   ", c.get_subject()
+print "Issuer:    ", c.get_issuer()
+print "Lifetime:  ", c.get_lifetime()
+print "Not Before:", c.get_not_before()
+print "Not After: ", c.get_not_after()
+
+print "Validate:    ",
+try:
+    c.validate()
 except glopy.error as e:
     print "FAILED -", e
 else:
     print "OK"
 
-print "Verify Cert:",
+print "Check Issuer: ",
 try:
-    c.verify_cert()
+    c.check_cert_issuer()
+except glopy.error as e:
+    print "FAILED -", e
+else:
+    print "OK"
+
+print "Check Private Key: ",
+try:
+    c.check_private_key()
 except glopy.error as e:
     print "FAILED -", e
 else:

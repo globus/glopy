@@ -12,7 +12,7 @@ if globus_location is None:
     print "Please set GLOBUS_LOCATION"
     sys.exit(1)
 
-source_files = ["glopymodule.c", "credentialtype.c"]
+source_files = ["glopymodule.c", "credentialtype.c", "globus_gsi_cred_patch.c"]
 source_paths = map(lambda s: "src/" + s, source_files)
 
 def get_globus_libs(*args):
