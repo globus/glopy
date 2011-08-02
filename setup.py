@@ -4,6 +4,10 @@ For GT 5.2, set your environment like this:
 GLOBUS_LOCATION=/usr
 GLOBUS_FLAVOR=
 
+If using the debian packages for 5.2, install:
+  libglobus-gss-assist-dev
+  libglobus-gsi-credential-dev
+
 For GT 5.0, set GLOBUS_LOCATION and GLOBUS_FLAVOR to the values used when
 you installed globus toolkit.
 """
@@ -58,7 +62,8 @@ if not SYSTEM_SSL:
     ssl_libs = map(add_flavor, ssl_libs)
 
 glopymodule = Extension("glopy", source_paths,
-     include_dirs=[add_flavor_path(os.path.join(globus_location, "include"))],
+     include_dirs=["/usr/include/globus", "/usr/lib/globus/include",
+                   add_flavor_path(os.path.join(globus_location, "include"))],
      library_dirs=[os.path.join(globus_location, "lib")],
      libraries=globus_libs
                + ["dl", add_flavor("ltdl")]
