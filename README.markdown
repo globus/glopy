@@ -1,8 +1,14 @@
-USAGE
+# Overview #
 
-Library wrapping Globus Toolkit. This is intentionally written by hand and not
-with SWIG, to make it easy to develop and audit the specific functionality
-required by GO.
+globy is a Python library wrapping parts of the Globus Toolkit. It is
+intentionally written by hand and not with SWIG, to make it easy to develop and
+audit the specific functionality required by Globus Online.
+
+glopy is pronounced **jalopy**, *NOT gloppy*. It is short for GLObus PYthon.
+
+# Usage #
+
+See [http://globusonline.github.com/glopy/](http://globusonline.github.com/glopy/) for the generated API documentation.
 
 Currently only supports loading and verifying certificate chains and
 credentials, by wrapping globus_gsi_credential. For example:
@@ -26,34 +32,32 @@ it understands proxy certificates.
 
 A single credential object can be re-used to load and verify many certificates
 and proxies, from files and from strings, within a single thread. However it is
-NOT THREAD SAFE, so each thread should have it's own object.
+**NOT THREAD SAFE**, so each thread should have it's own object.
 
-
-BUILDING
+# Building #
 
 Globus Toolkit 5.0 or 5.2 (5.1.X) is required.
 
 The build script uses vanilla distutils. To build and install, run this
 (probably as root):
 
-$ export GLOBUS_LOCATION=/usr/local/globus GLOBUS_FLAVOR=gcc64dbg
-$ python setup.py install
+    export GLOBUS_LOCATION=/usr/local/globus GLOBUS_FLAVOR=gcc64dbg
+    python setup.py install
 
 For GT 5.2, set your environment like this:
 
-GLOBUS_LOCATION=/usr
-GLOBUS_FLAVOR=
+    GLOBUS_LOCATION=/usr
+    GLOBUS_FLAVOR=
 
 If using the debian packages for 5.2, install:
-  libglobus-gss-assist-dev
-  libglobus-gsi-credential-dev
+
+    apt-get install libglobus-gss-assist-dev libglobus-gsi-credential-dev
 
 this list may not be complete - try installing this as well if that fails:
-  globus-gsi-cert-utils-progs
-  globus-proxy-util
 
+    apt-get install globus-gsi-cert-utils-progs globus-proxy-util
 
-For GT 5.0, set GLOBUS_LOCATION and GLOBUS_FLAVOR to the values used when
+For GT 5.0, set `GLOBUS_LOCATION` and `GLOBUS_FLAVOR` to the values used when
 you installed globus toolkit.
 
 Note: There are currently lots of warnings from gt header files. It would
