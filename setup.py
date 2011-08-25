@@ -1,5 +1,5 @@
 """
-See README for build instructions.
+See README.markdown for build instructions.
 """
 from distutils.core import setup, Extension
 
@@ -63,8 +63,20 @@ glopymodule = Extension("glopy", source_paths,
 
 setup(name = "glopy",
       version = "0.1",
-      description="Python library wrapping Globus Toolkit",
+      description="Python library wrapping Globus Toolkit credential library",
       author="Bryce Allen",
-      url="http://www.globus.org",
+      url="https://github.com/globusonline/glopy",
       author_email="ballen@ci.uchicago.edu",
-      ext_modules = [glopymodule])
+      ext_modules = [glopymodule],
+      keywords=["globus"],
+      classifiers=[
+          "Development Status :: 4 - Beta",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: Apache Software License",
+          "Operating System :: MacOS :: MacOS X",
+          "Operating System :: POSIX",
+          "Programming Language :: Python",
+          "Programming Language :: C",
+          "Topic :: Security :: Cryptography",
+          ],
+      )
