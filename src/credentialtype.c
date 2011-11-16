@@ -20,6 +20,7 @@
 
 #include "exceptions.h"
 
+#include "globus_pre.h"
 #include "globus_common.h"
 #include "globus_gsi_system_config.h"
 #include "globus_gsi_credential.h"
