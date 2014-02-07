@@ -55,7 +55,11 @@ If using the debian packages for 5.2, install:
 
 this list may not be complete - try installing this as well if that fails:
 
-    apt-get install globus-gsi-cert-utils-progs globus-proxy-util
+    apt-get install globus-gsi-cert-utils-progs globus-proxy-utils
+
+You might also need to install:
+
+    apt-get install libtool
 
 For GT 5.0, set `GLOBUS_LOCATION` and `GLOBUS_FLAVOR` to the values used when
 you installed globus toolkit.
