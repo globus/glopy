@@ -24,6 +24,7 @@ source_paths = map(lambda s: "src/" + s, source_files)
 
 def add_flavor(lib_name):
     if FLAVOR:
+        return lib_name
         return lib_name + "_" + FLAVOR
     else:
         return lib_name
@@ -53,7 +54,10 @@ if not SYSTEM_SSL:
 
 glopymodule = Extension("glopy", source_paths,
      include_dirs=["/usr/include/globus", "/usr/lib/globus/include",
-                   add_flavor_path(os.path.join(globus_location, "include"))],
+                   add_flavor_path(os.path.join(globus_location, "include")),
+                   (os.path.join(globus_location, "include/globus")),
+                   (os.path.join(globus_location, "include/globus/gcc64dbg")),
+                   ],
      library_dirs=[os.path.join(globus_location, "lib")],
      libraries=globus_libs
                + ["dl", add_flavor("ltdl")]
