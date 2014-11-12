@@ -55,6 +55,7 @@ if not SYSTEM_SSL:
 glopymodule = Extension("glopy", source_paths,
      include_dirs=["/usr/include/globus", "/usr/lib/globus/include",
                    add_flavor_path(os.path.join(globus_location, "include")),
+                   (os.path.join(globus_location, "include")),
                    (os.path.join(globus_location, "include/globus")),
                    (os.path.join(globus_location, "include/globus/gcc64dbg")),
                    ],
