@@ -38,7 +38,13 @@ and proxies, from files and from strings, within a single thread. However it is
 
 Globus Toolkit 5.0 or 5.2 (5.1.X) is required.
 
-The build script uses vanilla distutils. To build and install, run this
+The build script uses vanilla distutils and the `python-dev` package.
+
+For example, on debian install `python-dev`  like this:
+
+    apt-get install python-dev
+
+To build and install, run this
 (probably as root):
 
     export GLOBUS_LOCATION=/usr/local/globus GLOBUS_FLAVOR=gcc64dbg
