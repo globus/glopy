@@ -4,7 +4,7 @@ globy is a Python library wrapping parts of the Globus Toolkit. It is
 intentionally written by hand and not with SWIG, to make it easy to develop and
 audit the specific functionality required by Globus Online.
 
-glopy is pronounced **jalopy**, *NOT gloppy*. It is short for GLObus PYthon.
+glopy is pronounced *gloppy*. It is short for GLObus PYthon.
 
 # Usage #
 
@@ -36,7 +36,7 @@ and proxies, from files and from strings, within a single thread. However it is
 
 # Building #
 
-Globus Toolkit 5.0 or 5.2 (5.1.X) is required.
+Globus Toolkit 5.2 or 6.0 is required.
 
 The build script uses vanilla distutils and the `python-dev` package.
 
@@ -44,18 +44,11 @@ For example, on debian install `python-dev`  like this:
 
     apt-get install python-dev
 
-To build and install, run this
-(probably as root):
+To build and install, run this (probably as root):
 
-    export GLOBUS_LOCATION=/usr/local/globus GLOBUS_FLAVOR=gcc64dbg
     python setup.py install
 
-For GT 5.2, set your environment like this:
-
-    GLOBUS_LOCATION=/usr
-    GLOBUS_FLAVOR=
-
-If using the debian packages for 5.2, install:
+If using the debian packages for 5.2 or 6.0, install:
 
     apt-get install libglobus-gss-assist-dev libglobus-gsi-credential-dev
 
@@ -67,8 +60,12 @@ You might also need to install:
 
     apt-get install libtool
 
-For GT 5.0, set `GLOBUS_LOCATION` and `GLOBUS_FLAVOR` to the values used when
-you installed globus toolkit.
-
 Note: There are currently lots of warnings from gt header files. It would
 be nice to fix these, I may be including a header twice.
+
+If you get "fatal error: io.h: No such file or directory", set
+
+    export GLOPY_IO_H_UNDEF=1
+
+In particular this seems to be caused by a bug in the python2.7-minimal
+package on Debian wheezy.

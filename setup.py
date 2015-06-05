@@ -1,65 +1,55 @@
 """
 See README.markdown for build instructions.
 """
+import subprocess
 from distutils.core import setup, Extension
 
 import os
 import sys
 
-# Configuration
-FLAVOR = os.getenv("GLOBUS_FLAVOR", "gcc64dbg")
-SYSTEM_SSL = os.getenv("GLOPY_SYSTEM_SSL", "TRUE").upper()
-if SYSTEM_SSL in ("TRUE", "T", "1", "Y", "YES"):
-    SYSTEM_SSL = True
-else:
-    SYSTEM_SSL = False
+# Hack for debian wheezy, where pyconfig.h mistakenly defines HAVE_IO_H
+GLOPY_IO_H_UNDEF = (os.getenv("GLOPY_IO_H_UNDEF", "FALSE").upper()
+                    in ("TRUE", "T", "1", "Y", "YES"))
 
-globus_location = os.getenv("GLOBUS_LOCATION")
-if globus_location is None:
-    print "Please set GLOBUS_LOCATION"
-    sys.exit(1)
+PACKAGES = "globus-gsi-credential globus-common libssl".split()
+CFLAGS = ["-g", "-Wno-strict-prototypes"]
 
-source_files = ["glopymodule.c", "credentialtype.c", "globus_gsi_cred_patch.c"]
-source_paths = map(lambda s: "src/" + s, source_files)
+SOURCE_FILES = ["glopymodule.c", "credentialtype.c", "globus_gsi_cred_patch.c"]
 
-def add_flavor(lib_name):
-    if FLAVOR:
-        return lib_name + "_" + FLAVOR
-    else:
-        return lib_name
 
-def add_flavor_path(path):
-    if FLAVOR:
-        return os.path.join(path, FLAVOR)
-    else:
-        return path
+def pkgconfig(packages, args):
+    p = subprocess.Popen(["pkg-config"] + args + packages,
+                         stdout=subprocess.PIPE)
+    (out, err) = p.communicate()
+    if err:
+        raise Exception("pkgconfig failed: %s" % err)
+    return out
 
-def get_globus_libs(*args):
-    libs = []
-    for arg in args:
-        for subarg in arg.split():
-            libs.append(add_flavor("globus_%s" % subarg))
-    return libs
 
-globus_libs = get_globus_libs("common", "oldgaa",
-                              "openssl", "openssl_error",
-                              "proxy_ssl",
-                              "gsi_callback", "gsi_cert_utils",
-                              "gsi_credential", "gsi_sysconfig")
+def pkgconfig_to_extension_kw(packages):
+    """
+    Generate kw args for Extension, based on output of running pkg-config
+    on @packages.
+    """
+    kw = {}
+    # map prefixes in pkg-config output to the distutils kw arg name
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    output = pkgconfig(packages, ["--libs", "--cflags"])
+    for token in output.split():
+        if token[:2] in flag_map:
+            kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+        else:
+            kw.setdefault('extra_compile_args', []).append(token)
+    return kw
 
-ssl_libs = "ssl crypto".split()
-if not SYSTEM_SSL:
-    ssl_libs = map(add_flavor, ssl_libs)
 
-glopymodule = Extension("glopy", source_paths,
-     include_dirs=["/usr/include/globus", "/usr/lib/globus/include",
-                   add_flavor_path(os.path.join(globus_location, "include"))],
-     library_dirs=[os.path.join(globus_location, "lib")],
-     libraries=globus_libs
-               + ["dl", add_flavor("ltdl")]
-               + ssl_libs,
-     depends=["glopymodule.h", "credentialtype.h"],
-     extra_compile_args=["-g", "-Wno-strict-prototypes"])
+kw = pkgconfig_to_extension_kw(PACKAGES)
+kw.setdefault("extra_compile_args", []).extend(CFLAGS)
+if GLOPY_IO_H_UNDEF:
+    kw["extra_compile_args"].append("-DGLOPY_IO_H_UNDEF")
+glopymodule = Extension("glopy", map(lambda s: "src/" + s, SOURCE_FILES),
+                        depends=["glopymodule.h", "credentialtype.h"],
+                        **kw)
 
 setup(name = "glopy",
       version = "0.1",
