@@ -4,14 +4,15 @@ globy is a Python library wrapping parts of the Globus Toolkit. It is
 intentionally written by hand and not with SWIG, to make it easy to develop and
 audit the specific functionality required by Globus Online.
 
-glopy is pronounced *gloppy*. It is short for GLObus PYthon.
+glopy is pronounced *gloppy*; the *jalopy* pronunciation never caught on
+and is now deprecated. It is short for GLObus PYthon.
 
 # Usage #
 
 See [http://globusonline.github.com/glopy/](http://globusonline.github.com/glopy/) for the generated API documentation.
 
 Currently only supports loading and verifying certificate chains and
-credentials, by wrapping globus_gsi_credential. For example:
+credentials, by wrapping `globus_gsi_credential`. For example:
 
     import glopy
 
@@ -34,38 +35,46 @@ A single credential object can be re-used to load and verify many certificates
 and proxies, from files and from strings, within a single thread. However it is
 **NOT THREAD SAFE**, so each thread should have it's own object.
 
-# Building #
+# Dependencies #
 
-Globus Toolkit 5.2 or 6.0 is required.
+glopy requires Globus Toolkit 5.2 or 6.0 and python 2.6 or 2.7.
 
-The build script uses vanilla distutils and the `python-dev` package.
+On debian and ubuntu, using python 2.7 (recommended) as an example:
 
-For example, on debian install `python-dev`  like this:
+    apt-get install python2.7-dev pkg-config
 
-    apt-get install python-dev
-
-To build and install, run this (probably as root):
-
-    python setup.py install
-
-If using the debian packages for 5.2 or 6.0, install:
+If using the official GT packages (tested on ubuntu 14.04 with GT 6):
 
     apt-get install libglobus-gss-assist-dev libglobus-gsi-credential-dev
 
-this list may not be complete - try installing this as well if that fails:
+# Building #
 
-    apt-get install globus-gsi-cert-utils-progs globus-proxy-utils
+To build and install using python 2.7:
 
-You might also need to install:
+    # export PKG_CONFIG_PATH=/usr/local/globus/lib/pkgconfig
+    python2.7 setup.py install
 
-    apt-get install libtool
+Setting `PKG_CONFIG_PATH` should not be necessary if using the official
+GT packages. Use sudo if doing a system wide install, or use the --user
+option to install in the current user's home directory.
 
-Note: There are currently lots of warnings from gt header files. It would
-be nice to fix these, I may be including a header twice.
+# Known Issues #
 
-If you get "fatal error: io.h: No such file or directory", set
+If you get "fatal error: io.h: No such file or directory" when building, set
 
     export GLOPY_IO_H_UNDEF=1
 
 In particular this seems to be caused by a bug in the python2.7-minimal
 package on Debian wheezy.
+
+If you get the following Python exception when creating a
+glopy.Credential object:
+
+    glopy.error: globus_sysconfig: Could not find a valid trusted CA certificates directory: The trusted certificates directory could not be found in any of the following locations:
+    1) env. var. X509_CERT_DIR
+    2) $HOME/.globus/certificates
+    3) /etc/grid-security/certificates
+    4) $GLOBUS_LOCATION/share/certificates
+
+you need to create a certificates directory at one of the suggested
+locations.
