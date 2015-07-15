@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import sys
 import glopy
 
 if len(sys.argv) != 2:
-    print "Usage: %s cert_file" % sys.argv[0]
+    print("Usage: %s cert_file" % sys.argv[0])
 
 fname = sys.argv[1]
 with open(fname) as f:
@@ -19,36 +20,36 @@ try:
 except glopy.error:
     c.load_cert(data)
 
-print "Identity:  ", c.get_identity()
-print "Subject:   ", c.get_subject()
-print "Issuer:    ", c.get_issuer()
-print "Lifetime:  ", c.get_lifetime()
-print "Not Before:", c.get_not_before()
-print "Not After: ", c.get_not_after()
-print "Key Size:  ", c.get_key_size()
-print "Has Priv K:", c.has_private_key()
-print "Chain Len: ", c.get_chain_length()
+print("Identity:  ", c.get_identity())
+print("Subject:   ", c.get_subject())
+print("Issuer:    ", c.get_issuer())
+print("Lifetime:  ", c.get_lifetime())
+print("Not Before:", c.get_not_before())
+print("Not After: ", c.get_not_after())
+print("Key Size:  ", c.get_key_size())
+print("Has Priv K:", c.has_private_key())
+print("Chain Len: ", c.get_chain_length())
 
-print "Validate:    ",
+print("Validate:    ", end=' ')
 try:
     c.validate()
 except glopy.error as e:
-    print "FAILED -", e
+    print("FAILED -", e)
 else:
-    print "OK"
+    print("OK")
 
-print "Check Issuer: ",
+print("Check Issuer: ", end=' ')
 try:
     c.check_cert_issuer()
 except glopy.error as e:
-    print "FAILED -", e
+    print("FAILED -", e)
 else:
-    print "OK"
+    print("OK")
 
-print "Check Private Key: ",
+print("Check Private Key: ", end=' ')
 try:
     c.check_private_key()
 except glopy.error as e:
-    print "FAILED -", e
+    print("FAILED -", e)
 else:
-    print "OK"
+    print("OK")

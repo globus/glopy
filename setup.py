@@ -1,3 +1,4 @@
+from __future__ import print_function
 """
 See README.markdown for build instructions.
 """
@@ -16,11 +17,11 @@ else:
 
 globus_location = os.getenv("GLOBUS_LOCATION")
 if globus_location is None:
-    print "Please set GLOBUS_LOCATION"
+    print("Please set GLOBUS_LOCATION")
     sys.exit(1)
 
 source_files = ["glopymodule.c", "credentialtype.c", "globus_gsi_cred_patch.c"]
-source_paths = map(lambda s: "src/" + s, source_files)
+source_paths = ["src/" + s for s in source_files]
 
 def add_flavor(lib_name):
     if FLAVOR:
@@ -49,7 +50,7 @@ globus_libs = get_globus_libs("common", "oldgaa",
 
 ssl_libs = "ssl crypto".split()
 if not SYSTEM_SSL:
-    ssl_libs = map(add_flavor, ssl_libs)
+    ssl_libs = [add_flavor(ssl_lib) for ssl_lib in ssl_libs]
 
 glopymodule = Extension("glopy", source_paths,
      include_dirs=["/usr/include/globus", "/usr/lib/globus/include",
