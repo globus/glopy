@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from __future__ import print_function
-
 """
 Test the glopy credential module by repeatedly loading credentials, re
 using the same handle over and over, and check for memory leaks.
@@ -14,16 +13,14 @@ import glopy
 TEST_DIR = os.path.abspath(__file__)
 TMP_DIR = os.path.join(TEST_DIR, "tmp")
 
+
 class LoadCreds(Thread):
     def __init__(self, trials, *credentials):
         Thread.__init__(self)
         self.trials = trials
         self.credentials = credentials
         self.c = glopy.Credential()
-        self.count = dict(total=0,
-                          bad_chain=0,
-                          bad_private_key=0,
-                          bad_cert=0)
+        self.count = dict(total=0, bad_chain=0, bad_private_key=0, bad_cert=0)
 
     def run(self):
         c = self.c
@@ -82,7 +79,6 @@ class LoadCreds(Thread):
                     except glopy.error as e:
                         bad_private_key += 1
 
-
             if i == 0:
                 self.count["total"] = total
                 self.count["bad_chain"] = bad_chain
@@ -101,6 +97,7 @@ class LoadCreds(Thread):
                 if self.count["bad_private_key"] != bad_private_key:
                     print("ERROR: bad_private_key mismatch %d != %d" \
                           % (bad_private_key, self.count["bad_private_key"]))
+
 
 if __name__ == '__main__':
     threads = int(sys.argv[1])
