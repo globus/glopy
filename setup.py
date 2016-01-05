@@ -52,7 +52,7 @@ glopymodule = Extension("glopy", map(lambda s: "src/" + s, SOURCE_FILES),
                         **kw)
 
 setup(name = "glopy",
-      version = "0.1",
+      version = "0.2",
       description="Python library wrapping Globus Toolkit credential library",
       author="Bryce Allen",
       url="https://github.com/globusonline/glopy",
