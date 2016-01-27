@@ -60,6 +60,10 @@ option to install in the current user's home directory.
 
 # Known Issues #
 
+If you get an error like `/usr/bin/ld: cannot find -lglobus_common_gcc64dbg` you need to do:
+
+    export GLOBUS_FLAVOR=
+
 If you get "fatal error: io.h: No such file or directory" when building, set
 
     export GLOPY_IO_H_UNDEF=1
